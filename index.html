@@ -152,9 +152,19 @@ main { padding:16px 20px 100px; }
 .toggle-content { display:none; padding-top:8px; }
 .toggle-content.open { display:block; }
 
-@media (min-width: 600px) {
-  main { max-width:600px; margin:0 auto; }
-  header, nav { max-width:600px; margin:0 auto; padding-left:20px; padding-right:20px; }
+@media (min-width: 768px) {
+  header { max-width:1200px; margin:0 auto; }
+  body { display:grid; grid-template-columns:200px 1fr; min-height:100vh; }
+  #config-banner { grid-column:1/-1; }
+  header { grid-column:1/-1; padding:20px 32px 0; }
+  .sidebar { display:flex !important; }
+  .bottom-nav { display:none; }
+  main { padding:20px 32px 40px; }
+  .section.active { display:grid; grid-template-columns:1fr 1fr; gap:16px; align-items:start; }
+  .card { margin-bottom:0; }
+}
+@media (max-width: 767px) {
+  .sidebar { display:none; }
 }
 </style>
 </head>
@@ -174,6 +184,13 @@ main { padding:16px 20px 100px; }
   </div>
 </header>
 
+<nav class="sidebar" style="display:none">
+  <div style="font-size:11px;color:var(--muted);letter-spacing:1px;padding:8px 4px 4px">MENÚ</div>
+  <button class="tab active" onclick="showSection('resumen',this)">📊 Resumen</button>
+  <button class="tab" onclick="showSection('gastos',this)">💸 Gastos</button>
+  <button class="tab" onclick="showSection('tc',this)">💳 Tarjeta</button>
+  <button class="tab" onclick="showSection('graficos',this)">📈 Gráficos</button>
+</nav>
 <main>
   <!-- RESUMEN -->
   <div id="sec-resumen" class="section active">
@@ -307,7 +324,7 @@ main { padding:16px 20px 100px; }
 // ══════════════════════════════════════════
 // CONFIG
 // ══════════════════════════════════════════
-var API_URL = localStorage.getItem('finanzas_api_url') || '';
+var API_URL = 'https://script.google.com/macros/s/AKfycbyC09HZODJhfMAn6S7UDxyjQBOb9nYChYja56z3KSXrXSHlxJSnY0-Ld5wJ2jfhy5u8/exec';
 
 function guardarURL() {
   var url = document.getElementById('api-url-input').value.trim();
@@ -341,12 +358,8 @@ document.addEventListener('DOMContentLoaded', function() {
   // Fecha default en form gastos
   document.getElementById('g-fecha').value = hoy.toISOString().split('T')[0];
 
-  if (!API_URL) {
-    document.getElementById('config-banner').classList.remove('hidden');
-  } else {
-    document.getElementById('config-banner').classList.add('hidden');
-    cargarTodo();
-  }
+  document.getElementById('config-banner').classList.add('hidden');
+  cargarTodo();
 });
 
 function cargarTodo() {
@@ -376,9 +389,14 @@ function apiPost(data) {
 // ══════════════════════════════════════════
 function showSection(id, btn) {
   document.querySelectorAll('.section').forEach(function(s) { s.classList.remove('active'); });
-  document.querySelectorAll('.bnav-btn').forEach(function(b) { b.classList.remove('active'); });
+  document.querySelectorAll('.bnav-btn, .sidebar .tab').forEach(function(b) { b.classList.remove('active'); });
   document.getElementById('sec-' + id).classList.add('active');
-  btn.classList.add('active');
+  // Activar todos los botones que apuntan a esta sección
+  document.querySelectorAll('.bnav-btn, .sidebar .tab').forEach(function(b) {
+    if (b.getAttribute('onclick') && b.getAttribute('onclick').indexOf("'" + id + "'") !== -1) {
+      b.classList.add('active');
+    }
+  });
   if (id === 'graficos') cargarGraficos();
 }
 
